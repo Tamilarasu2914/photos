@@ -1,0 +1,417 @@
+Signin cologin page
+Clogin.html
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Customer Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="box">
+  <h2>Customer Login</h2>
+
+  <form action="/login/customer" method="POST">
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+
+  <p><a href="signup.html">Create Account</a></p>
+</div>
+
+</body>
+</html>
+
+Signin.html
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="box">
+  <h2>Create Account</h2>
+
+  <form action="http://localhost:3000/signup" method="POST" onsubmit="return validateForm()">
+
+  <input type="text" name="name" placeholder="Full Name" required>
+
+  <input type="email" name="email" placeholder="Email" required>
+
+  <input type="text" id="phone" name="phone" placeholder="Phone Number" required>
+
+  <input type="password" id="password" name="password" placeholder="Password" required>
+
+  <button type="submit">Sign Up</button>
+
+</form>
+
+  <p>
+    <a href="clogin.html">Customer Login</a> |
+    <a href="weaver.html">Weaver Login</a>
+  </p>
+</div>
+
+<script src="signup.js"></script>
+</body>
+</html>
+
+
+
+Style.css
+
+
+
+body {
+  background: #f5f5f5;
+  font-family: Arial;
+}
+
+.box {
+  width: 350px;
+  margin: 100px auto;
+  background: white;
+  padding: 25px;
+  box-shadow: 0 0 10px gray;
+  text-align: center;
+}
+
+input, select {
+  width: 95%;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background: #5f6f52;
+  color: rgb(20, 17, 17);
+  border: none;
+}
+
+
+Weaver.html
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weaver Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="box">
+  <h2>Weaver Login</h2>
+
+  <form action="/login/weaver" method="POST">
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+
+  <p><a href="signup.html">Create Account</a></p>
+</div>
+
+</body>
+</html>
+
+Signin.js
+
+
+
+function validateForm() {
+  const phone = document.getElementById("phone").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!/^\d{10}$/.test(phone)) {
+    alert("Enter valid 10-digit phone number");
+    return false;
+  }
+
+  if (password.length < 5) {
+    alert("Password must be at least 5 characters");
+    return false;
+  }
+
+  return true;
+}
+
+
+Server.js
+
+
+
+const express = require("express");
+const bodyParser = require("body-parser");
+const mysql = require("mysql2");
+const path = require("path");
+
+const app = express();
+
+// middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "../public")));
+
+// MySQL connection
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "handloom_signup"
+});
+
+db.connect(err => {
+  if (err) {
+    console.log("DB Error:", err);
+  } else {
+    console.log("MySQL Connected");
+  }
+});
+
+// ✅ SIGNUP ROUTE
+app.post("/signup", (req, res) => {
+  const { name, email, phone, password } = req.body;
+
+  const sql =
+    "INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)";
+
+  db.query(sql, [name, email, phone, password], (err) => {
+    // new user OR already exists
+    console.log("Signup done or already exists");
+
+    // 🔥 ALWAYS redirect to customer login page
+    return res.redirect("/clogin.html");
+  });
+});
+
+// server start
+app.listen(3000, () => {
+  console.log("Server running at http://localhost:3000");
+});
+
+
+
+MySQL
+
+
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `phone` varchar(10) DEFAULT NULL,
+  `password` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`) VALUES
+(1, 'selvanayaki', 'selvanayaki29g@gmail.com', '7418263015', 'Thanu@06');
+
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `phone` (`phone`);
+
+--
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+COMMIT;
+
+...................................................................
+
+Order details page
+
+Index.html
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Details</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Order Details</h2>
+
+<form id="orderForm">
+  <input type="hidden" id="sareeType">
+
+  <label>Customer Name</label>
+  <input type="text" id="name" required>
+
+  <label>Mobile Number</label>
+  <input type="text" id="mobile" required>
+
+  <label>Delivery Address</label>
+  <textarea id="address" required></textarea>
+
+  <p><b>Payment Option:</b> Cash On Delivery</p>
+
+  <button type="submit">Order Now</button>
+</form>
+
+<p class="home">
+  <a href="index.html">Go Home Page</a>
+</p>
+
+<script src="order.js"></script>
+</body>
+</html>
+
+
+
+
+Style.css
+
+body {
+  font-family: Arial;
+  background: #f5f5f5;
+  text-align: center;
+}
+
+form {
+  background: white;
+  padding: 20px;
+  width: 350px;
+  margin: auto;
+  border-radius: 8px;
+}
+
+input, textarea {
+  width: 100%;
+  margin: 10px 0;
+  padding: 8px;
+}
+
+button {
+  background: green;
+  color: white;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  font-size: 16px;
+}
+
+.home {
+  margin-top: 15px;
+}
+
+
+
+
+Script.js
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const sareeInput = document.getElementById("sareeType");
+  const form = document.getElementById("orderForm");
+
+  sareeInput.value = localStorage.getItem("sareeType") || "Unknown";
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    fetch("/place-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sareeType: sareeInput.value,
+        name: document.getElementById("name").value,
+        mobile: document.getElementById("mobile").value,
+        address: document.getElementById("address").value
+      })
+    })
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      window.location.href = "index.html";
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Order failed");
+    });
+  });
+});
+
+
+
+Server.js
+
+
+
+const express = require("express");
+const mysql = require("mysql2");
+const path = require("path");
+
+const app = express();
+
+// 🔥 MUST be before routes
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static(path.join(__dirname, "public")));
+
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "handloom_sales"
+});
+
+db.connect(err => {
+  if (err) {
+    console.log("DB Error:", err);
+    return;
+  }
+  console.log("MySQL Connected");
+});
+
+app.post("/place-order", (req, res) => {
+  console.log("REQ BODY:", req.body); // 🔍 debug
+
+  const { sareeType, name, mobile, address } = req.body;
+
+  if (!sareeType || !name || !mobile || !address) {
+    return res.status(400).send("Missing data");
+  }
+
+  const sql = `
+    INSERT INTO orders
+    (saree_type, customer_name, mobile, address, payment_method)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    sql,
+    [sareeType, name, mobile, address, "Cash On Delivery"],
+    (err) => {
+      if (err) {
+        console.log("INSERT ERROR:", err);
+        return res.status(500).send("DB error");
+      }
+      res.send("Order Placed Successfully");
+    }
+  );
+});
+
+app.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
+
+
+
+
